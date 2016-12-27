@@ -130,7 +130,7 @@ class Db {
         }
         else
         {
-            $this->setError("We have an error in the parameter of get_first_row() method !");
+            $this->setError("We have an error in the parameter of first() method !");
             return null;
         }
     }
