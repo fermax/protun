@@ -198,8 +198,15 @@ class db {
         $this->query .= " FROM ".$tableName;
         return $this;
     }
+	
 
-
+    /**
+     * @param $param1
+     * @param $condition
+     * @param $param2
+     * @return $this|null
+     */
+	
 
     public function where($param1, $condition, $param2)
     {
@@ -213,7 +220,12 @@ class db {
         return null;
 
     }
-
+    /**
+     * @param $param1
+     * @param $condition
+     * @param $param2
+     * @return $this
+     */
 
     public function and_where($param1, $condition, $param2)
     {
@@ -221,6 +233,17 @@ class db {
         $this->query .= " AND ".$param1." ".$condition." ?";
         return $this;
     }
+	
+	
+	
+	
+     /**
+     * @param $param1
+     * @param $condition
+     * @param $param2
+     * @return $this
+     */
+	
     public function or_where($param1, $condition, $param2)
     {
         $this->conditions[] = $param2;
@@ -264,6 +287,10 @@ class db {
     {
         return $this->query;
     }
+	
+    /**
+     * @return array|string
+     */
 
     public function getFullQueryString()
     {
