@@ -8,7 +8,6 @@ class db {
     private $db;
     private $pdo;
     private $query = "";
-    private $w   = 0;
     private $error = [];
     private $conditions = [];
 
@@ -95,7 +94,7 @@ class db {
                 // Prevent SQL Injection
                 $statement = $this->pdo->prepare( $this->query );
                 // is 'Where' method called ?
-                if( $this->w > 0 ){
+                if( count($this->conditions) >0 ){
                     // 01- yes...
                     $statement->execute($this->conditions);
                 }
@@ -125,7 +124,7 @@ class db {
             {
                 $statement = $this->pdo->prepare( $this->query );
                 // 01- is 'Where' method called ?
-                if( $this->w > 0 ){
+                if( count($this->conditions) >0 ){
                     // Prevent SQL Injection
                     $statement->execute($this->conditions);
                 }
@@ -188,15 +187,10 @@ class db {
      */
     public function where($param1, $condition, $param2)
     {
-        if( $this->w === 0 )
-        {
             $this->conditions[] = $param2;
             $this->query .= " WHERE ".$param1." ".$condition." ?";
             $this->w++;
             return $this;
-        }
-        return null;
-
     }
 
 
