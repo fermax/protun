@@ -1,10 +1,6 @@
 <?php
-namespace cms\core;
-include "Init.php";
-use PDO;
-use PDOException;
 
-class Db {
+class db {
 
     private $host;
     private $user;
@@ -12,7 +8,11 @@ class Db {
     private $db;
     private $pdo;
     private $query = "";
+    private $if;
+    private $sif = "";
+    private $w   = 0;
     private $error = [];
+    private $conditions = [];
 
 
     /**
@@ -23,7 +23,7 @@ class Db {
      * @param $db
      */
 
-    public function __construct($host, $user, $pass, $db)
+    public function __construct( $host = 'localhost', $user = 'root', $pass = '', $db = 'db' )
     {
         $this->host = $host;
         $this->user = $user;
@@ -45,7 +45,7 @@ class Db {
     }
 
 
-     /**
+    /**
      * @return PDO
      */
     public function getPdo()
@@ -65,7 +65,19 @@ class Db {
         {
             try
             {
-                return $this->pdo->query($this->query)->fetchAll(PDO::FETCH_OBJ);
+                $statement = $this->pdo->prepare( $this->query );
+                // 01- is 'Where' method called ?
+                if( $this->w > 0 ){
+                       // Prevent SQL Injection
+                        $statement->execute($this->conditions);
+                        return $statement->fetchAll(PDO::FETCH_OBJ);
+                }
+                else
+                {
+                 //02-  No...
+                    $statement->execute();
+                    return $statement->fetchAll(PDO::FETCH_OBJ);
+                }
             }
             catch ( PDOException $e )
             {
@@ -76,10 +88,10 @@ class Db {
         }
         else if( is_string($query) )
         {
-
+            // يُنصحُ بعدم استعمال هذا الخيار لخطورته ، لأنه غير محمي من ثغرة حقن قاعدة البيانات
             try
             {
-                return $this->pdo->query($query)->fetchAll();
+                return $this->pdo->query($query)->fetchAll(PDO::FETCH_OBJ);
             }
             catch (PDOException $e)
             {
@@ -106,7 +118,20 @@ class Db {
         {
             try
             {
-                return $this->pdo->query($this->query)->fetch(PDO::FETCH_OBJ);
+                $statement = $this->pdo->prepare( $this->query );
+                // 01- is 'Where' method called ?
+                if( $this->w > 0 ){
+                    // Prevent SQL Injection
+                    $statement->execute($this->conditions);
+                    return $statement->fetch(PDO::FETCH_OBJ);
+                }
+                else
+                {
+                    //02-  No...
+                    $statement->execute();
+                    return $statement->fetch(PDO::FETCH_OBJ);
+                }
+			   
             }
             catch (PDOException $e)
             {
@@ -117,6 +142,7 @@ class Db {
         }
         else if(is_string($query))
         {
+          // يُنصحُ بعدم استعمال هذا الخيار لخطورته ، لأنه غير محمي من ثغرة حقن قاعدة البيانات
 
             try
             {
@@ -145,8 +171,7 @@ class Db {
     public function num_rows($query)
     {
         $this->query = $query;
-        $q = $this->pdo->query($this->query);
-        return $q->rowCount();
+        return $this->pdo->query($this->query)->rowCount();   
     }
 
 
@@ -174,16 +199,32 @@ class Db {
         return $this;
     }
 
-    /**
-     * @param $if
-     * @param $operator
-     * @param $sif
-     * @return string
-     */
 
-    public function where ($if , $operator, $sif)
+
+    public function where($param1, $condition, $param2)
     {
-        $this->query .= " WHERE ".$if." ".$operator." " .$sif;
+        if( $this->w === 0 )
+        {
+            $this->conditions[] = $param2;
+            $this->query .= " WHERE ".$param1." ".$condition." ?";
+            $this->w++;
+            return $this;
+        }
+        return null;
+
+    }
+
+
+    public function and_where($param1, $condition, $param2)
+    {
+        $this->conditions[] = $param2;
+        $this->query .= " AND ".$param1." ".$condition." ?";
+        return $this;
+    }
+    public function or_where($param1, $condition, $param2)
+    {
+        $this->conditions[] = $param2;
+        $this->query .= " OR ".$param1." ".$condition." ?";
         return $this;
     }
 
@@ -199,7 +240,7 @@ class Db {
         return $this;
     }
 
-    
+
 
     /**
      * @param $limit
@@ -221,6 +262,18 @@ class Db {
 
     public function getQueryString()
     {
+        return $this->query;
+    }
+
+    public function getFullQueryString()
+    {
+        if( count($this->conditions))
+        {
+            $results = [];
+            $results["query"] = $this->query;
+            $results["query_params"] = $this->conditions;
+            return $results;
+        }
         return $this->query;
     }
 
@@ -312,8 +365,8 @@ class Db {
 
     public function delete($table_name)
     {
-       $this->query = " DELETE FROM " . $table_name;
-       return $this;
+        $this->query = " DELETE FROM " . $table_name;
+        return $this;
 
     }
 
