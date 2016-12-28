@@ -5,7 +5,6 @@ include "Init.php";
 class Post {
 
     private $db;
-    private $sql;
     private $result;
 
 
@@ -23,18 +22,14 @@ class Post {
     /**
      * @param int $limit
      * @param String $table_name
+     * @param String $column
      * @param int $offset
      * @return array|null
      */
-    public function all($table_name, $limit = 15, $offset = 0)
+    public function all($table_name, $limit = 15, $offset = 0, $column = 'id')
     {
-        $this->sql = $this->db->select()
-						  ->from($table_name)
-						  ->order_by("id", "DESC")
-						  ->limit($limit, $offset);
-						  
-        $this->result = $this->db->get($this->sql);
-
+        $this->db->select()->from($table_name)->order_by($column, "DESC")->limit($limit, $offset);
+        $this->result = $this->db->all();
         if (null != $this->result )
         {
             return $this->result;
@@ -47,16 +42,14 @@ class Post {
 
     /**
      * @param $id
-     * @param String $table
+     * @param String $tableName
      * @return mixed|null
      */
-    public function single($table, $id)
+    public function single($tableName, $id)
     {
-        $this->sql = $this->db->select()
-							  ->from($table)
-							  ->where("id","=", $id);
-							  
-        $this->result = $this->db->first($this->sql);
+        $this->db->select()->from($tableName)->where("id","=", $id);
+        $this->result = $this->db->first();
+		
         if ( null != $this->result )
         {
             return $this->result;
@@ -73,7 +66,13 @@ class Post {
      */
     public function add($table , Array $postArray)
     {
-        return $this->db->insert($table, $postArray);
+        $this->db->insert($table, $postArray)->execute();
+        if( count( $this->db->getErrors() ) == 0 )
+        {
+            return true;
+        }
+
+        return false;
     }
 
 
@@ -81,15 +80,19 @@ class Post {
      * @param $table
      * @param $id
      * @param array $arrayValues
+     * @param string $condition
      * @return bool
      */
+
     public function edit($table, $id, Array $arrayValues, $condition = "=")
     {
-        $query = $this->db->update($table)->set($arrayValues)->where("id", $condition, $id);
-        $this->db->get($query);
-        //echo $this->db->getQueryString();
-        return true;
+        $this->db->update($table,$arrayValues)->where("id", $condition, $id)->execute();
+        if( count( $this->db->getErrors() ) == 0 )
+        {
+            return true;
+        }
 
+        return false;
     }
 
 
@@ -102,14 +105,13 @@ class Post {
     {
         if(is_int($id) && $id > 0)
         {
-            $query = $this->db->delete($table_name)->where("id", "=", $id);
-            $this->db->get($query);
-            //echo $this->db->getQueryString();
-            return true;
+            $this->db->delete($table_name)->where("id", "=", $id)->execute();
+            if( count( $this->db->getErrors() ) == 0 )
+            {
+                return true;
+            }
         }
-
         return null;
     }
 
-	
 }
