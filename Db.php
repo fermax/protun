@@ -8,8 +8,6 @@ class db {
     private $db;
     private $pdo;
     private $query = "";
-    private $if;
-    private $sif = "";
     private $w   = 0;
     private $error = [];
     private $conditions = [];
