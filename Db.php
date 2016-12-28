@@ -52,68 +52,49 @@ class db {
     }
 
 
+    function query($query)
+    {
+        $this->query = $query;
+        return $this;
+    }
+
+
     /**
-     * @param string $query
      * @return array|null
      */
-
-    public function get($query = "")
+    public function all()
     {
-        if( $query instanceof Db )
-        {
             try
             {
+                // Prevent SQL Injection
                 $statement = $this->pdo->prepare( $this->query );
-                // 01- is 'Where' method called ?
+                // is 'Where' method called ?
                 if( $this->w > 0 ){
-                       // Prevent SQL Injection
-                        $statement->execute($this->conditions);
-                        return $statement->fetchAll(PDO::FETCH_OBJ);
+                    // 01- yes...
+                    $statement->execute($this->conditions);
                 }
                 else
                 {
-                 //02-  No...
+                    //02-  No...
                     $statement->execute();
-                    return $statement->fetchAll(PDO::FETCH_OBJ);
                 }
+
+                return $statement->fetchAll(PDO::FETCH_OBJ);
             }
             catch ( PDOException $e )
             {
                 $this->setError( $e->getMessage() );
                 return null;
             }
-
-        }
-        else if( is_string($query) )
-        {
-            // يُنصحُ بعدم استعمال هذا الخيار لخطورته ، لأنه غير محمي من ثغرة حقن قاعدة البيانات
-            try
-            {
-                return $this->pdo->query($query)->fetchAll(PDO::FETCH_OBJ);
-            }
-            catch (PDOException $e)
-            {
-                $this->setError($e->getMessage());
-                return null;
-            }
-        }
-        else
-        {
-            $this->setError("We have an error in the parameter of get() method !");
-            return null;
-        }
-
     }
 
+
     /**
-     * @param string $query
      * @return mixed|null
      */
-
-    public function first($query = "")
+    public function first()
     {
-        if($query instanceof Db)
-        {
+
             try
             {
                 $statement = $this->pdo->prepare( $this->query );
@@ -121,15 +102,15 @@ class db {
                 if( $this->w > 0 ){
                     // Prevent SQL Injection
                     $statement->execute($this->conditions);
-                    return $statement->fetch(PDO::FETCH_OBJ);
                 }
                 else
                 {
                     //02-  No...
                     $statement->execute();
-                    return $statement->fetch(PDO::FETCH_OBJ);
                 }
-			   
+
+                return $statement->fetch(PDO::FETCH_OBJ);
+
             }
             catch (PDOException $e)
             {
@@ -137,43 +118,18 @@ class db {
                 return null;
             }
 
-        }
-        else if(is_string($query))
-        {
-          // يُنصحُ بعدم استعمال هذا الخيار لخطورته ، لأنه غير محمي من ثغرة حقن قاعدة البيانات
-
-            try
-            {
-                return $this->pdo->query($query)->fetch(PDO::FETCH_OBJ);
-            }
-            catch (PDOException $e)
-            {
-                $this->setError($e->getMessage());
-                return null;
-            }
-        }
-        else
-        {
-            $this->setError("We have an error in the parameter of first() method !");
-            return null;
-        }
     }
-
-
-
 
     /**
-     * @param $query
      * @return int
      */
-    public function num_rows($query)
+    public function rowCount()
     {
-        $this->query = $query;
-        return $this->pdo->query($this->query)->rowCount();   
+        return $this->pdo->query($this->query)->rowCount();
     }
 
 
-//##################################### db query building #####################################
+//##################################### db query builder #####################################
 
     /**
      * @param string $selected
@@ -196,7 +152,7 @@ class db {
         $this->query .= " FROM ".$tableName;
         return $this;
     }
-	
+
 
     /**
      * @param $param1
@@ -204,8 +160,6 @@ class db {
      * @param $param2
      * @return $this|null
      */
-	
-
     public function where($param1, $condition, $param2)
     {
         if( $this->w === 0 )
@@ -218,30 +172,30 @@ class db {
         return null;
 
     }
+
+
     /**
      * @param $param1
      * @param $condition
      * @param $param2
      * @return $this
      */
-
     public function and_where($param1, $condition, $param2)
     {
         $this->conditions[] = $param2;
         $this->query .= " AND ".$param1." ".$condition." ?";
         return $this;
     }
-	
-	
-	
-	
-     /**
+
+
+
+
+    /**
      * @param $param1
      * @param $condition
      * @param $param2
      * @return $this
      */
-	
     public function or_where($param1, $condition, $param2)
     {
         $this->conditions[] = $param2;
@@ -285,11 +239,10 @@ class db {
     {
         return $this->query;
     }
-	
+
     /**
      * @return array|string
      */
-
     public function getFullQueryString()
     {
         if( count($this->conditions))
@@ -329,8 +282,8 @@ class db {
         $this->query .= ")";
 
 
-        $this->pdo->query($this->query);
-        return $this->pdo->lastInsertId();
+        //$this->pdo->query($this->query);
+        //return $this->pdo->lastInsertId();
 
     }
 
@@ -417,6 +370,4 @@ class db {
     {
         return $this->error;
     }
-
-
 }
