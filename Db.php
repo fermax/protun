@@ -57,6 +57,32 @@ class db {
         $this->query = $query;
         return $this;
     }
+    
+    /**
+     * @return null|string
+     */
+    public function execute()
+    {
+        try{
+            if( count($this->conditions) >0 )
+            {
+                $statement = $this->pdo->prepare( $this->query );
+                $statement->execute($this->conditions);
+                return $this->pdo->lastInsertId();
+            }
+            else
+            {
+                $this->pdo->query($this->query);
+                return $this->pdo->lastInsertId();
+            }
+
+        }catch (PDOException $e)
+        {
+            $this->setError($e->getMessage());
+            return null;
+        }
+    }
+
 
 
     /**
