@@ -1,5 +1,5 @@
 <?php
-namespace hocine\cms\core\database;
+namespace hocine\protun\core\database;
 
 
 use PDO;
