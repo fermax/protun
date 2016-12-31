@@ -1,119 +1,138 @@
 <?php
-namespace cms\core;
-include "Init.php";
+/**
+* Author: HocineFR
+* Date: 26-12-2016
+* Time: 22:30
+*/
 
-class Post {
-
-    private $db;
-    private $result;
-
-
+class User extends db
+{
+	
+    private $_salt = '$[[158#~^\@@]}}]';
+    
     /**
      * User constructor.
-     * @param Db $db
      */
-    public function __construct(Db $db)
+    public function __construct()
     {
-        $this->db = $db;
-        return $this->db;
+        parent::__construct();
     }
 
-
-    /**
-     * @param int $limit
-     * @param String $table_name
-     * @param String $column
-     * @param int $offset
-     * @return array|null
-     */
-    public function all($table_name, $limit = 15, $offset = 0, $column = 'id')
+    public function login($username, $password)
     {
-        $this->db->select()->from($table_name)->order_by($column, "DESC")->limit($limit, $offset);
-        $this->result = $this->db->all();
-        if (null != $this->result )
+        $query = $this->select( "users.username, users.password" )
+                      ->from( "users" )
+                      ->where( "users.username", "=" , $username )
+                      ->and_where( "users.password","=", hash("sha512",trim($password).$this->_salt ) );
+        if( $query->rowCount() > 0 )
         {
-            return $this->result;
+            return true;
         }
         else
         {
-            return null;
+            $this->setError("اسم المستخدم أو كلمة المرور غير صحيحة");
+            return false;
         }
     }
+
+/************************************ admin section ***************************/
+
+
+    /**
+     * @return array|null
+     */
+    public function getAllUsers()
+    {
+        $result = $this->query("SELECT * FROM `users`")->order_by("id", "DESC")->all();
+        if( is_null( $result ) )
+        {
+            return $this->getErrors();
+        }
+        return $result;
+    }
+
 
     /**
      * @param $id
-     * @param String $tableName
-     * @return mixed|null
+     * @return array|mixed|null
      */
-    public function single($tableName, $id)
+    public function single($id)
     {
-        $this->db->select()->from($tableName)->where("id", "=", $id);
-        $this->result = $this->db->first();
-		
-        if ( null != $this->result )
-        {
-            return $this->result;
-        }
+         $result = $this->select()->from("users")->where("id", "=", $id)->first();
+         if( is_null( $result ) )
+         {
+             return $this->getErrors();
+         }
+         return $result;
 
-        return null;
     }
 
 
-    /**
-     * @param $table
-     * @param array $postArray
-     * @return boolean
+
+     /**
+     * @param array $userData
+     * @param string $uniqueColumn
+     * @return array|null|string
      */
-    public function add($table , Array $postArray)
+    public function createUser(Array $userData, $uniqueColumn = 'username')
     {
-        $this->db->insert($table, $postArray)->execute();
-        if( count( $this->db->getErrors() ) == 0 )
+        // Hashing user Password after sending it to db
+        foreach ($userData as $k => $v)
         {
-            return true;
-        }
-        
-        return false;
-    }
-
-
-    /**
-     * @param $table
-     * @param $id
-     * @param array $arrayValues
-     * @param string $condition
-     * @return bool
-     */
-
-    public function edit($table, $id, Array $arrayValues, $condition = "=")
-    {
-        $this->db->update($table,$arrayValues)->where("id", $condition, $id)->execute();
-        if( count( $this->db->getErrors() ) == 0 )
-        {
-            return true;
-        }
-        
-        return false;
-    }
-
-
-    /**
-     * @param $table_name
-     * @param $id
-     * @return bool|null
-     */
-    public function remove($table_name, $id)
-    {
-        if(is_int($id) && $id > 0)
-        {
-            $this->db->delete($table_name)->where("id", "=", $id)->execute();
-            if( count( $this->db->getErrors() ) == 0 )
+            if( $k == "password" )
             {
-                return true;
+                $userData[$k] = hash("sha512", $v.$this->_salt);
             }
-        
-        return false;
         }
-        return null;
+        // هل المستخدم موجود مسبقا في قاعدة البيانات؟
+        $user_exist = $this->select("username")->from('users')->where("username", "=", $userData[$uniqueColumn])->rowCount();
+
+        if( $user_exist === 0 )
+        {
+            $result = $this->insert('users', $userData)->execute();
+            if( is_null( $result ) )
+            {
+                return $this->getErrors();
+            }
+            return $result;
+        }
+        else
+        {
+            $this->setError("This User already exist ! ");
+            return $this->getErrors();
+        }
+
     }
-    
+
+    /**
+     * @param $id
+     * @param array $userData
+     * @return array|null|string
+     */
+    public function editUser($id, Array $userData)
+    {
+        $result = $this->update('users', $userData)->where("id", "=", $id)->execute();
+        if( is_null( $result ) )
+        {
+            return $this->getErrors();
+        }
+        return $result;
+    }
+
+
+
+
+    /**
+     * @param $id
+     * @return array|null|string
+     */
+    public function deleteUser($id)
+    {
+        $result = $this->delete('users')->where('id', '=', $id)->execute();
+        if( is_null( $result ) )
+        {
+            return $this->getErrors();
+        }
+        return $result;
+    }
 }
