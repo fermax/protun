@@ -1,4 +1,11 @@
 <?php
+namespace hocine\cms\core\database;
+
+
+use PDO;
+use PDOException;
+
+
 
 class db {
 
@@ -67,6 +74,7 @@ class db {
             {
                 $statement = $this->pdo->prepare( $this->query );
                 $statement->execute($this->conditions);
+				conditions = [];
                 return $this->pdo->lastInsertId();
             }
             else
@@ -97,6 +105,7 @@ class db {
                 if( count($this->conditions) >0 ){
                     // 01- yes...
                     $statement->execute($this->conditions);
+					conditions = [];
                 }
                 else
                 {
@@ -127,6 +136,7 @@ class db {
                 if( count($this->conditions) >0 ){
                     // Prevent SQL Injection
                     $statement->execute($this->conditions);
+					conditions = [];
                 }
                 else
                 {
@@ -150,7 +160,20 @@ class db {
      */
     public function rowCount()
     {
-        return $this->pdo->query($this->query)->rowCount();
+		$statement = $this->pdo->prepare( $this->query );
+		// 01- is 'Where' method called ?
+		if( count($this->conditions) > 0 ){
+			// Prevent SQL Injection
+			$statement->execute($this->conditions);
+			conditions = [];
+		}
+		else
+		{
+			//02-  No...
+			$statement->execute();
+		}
+
+		return $statement->rowCount();
     }
 
 
@@ -163,7 +186,7 @@ class db {
 
     public function select ($selected = "*")
     {
-        $this->query .= "SELECT ".$selected;
+        $this->query = "SELECT ".$selected;
         return $this;
     }
 
@@ -189,7 +212,6 @@ class db {
     {
             $this->conditions[] = $param2;
             $this->query .= " WHERE ".$param1." ".$condition." ?";
-            $this->w++;
             return $this;
     }
 
