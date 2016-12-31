@@ -1,6 +1,10 @@
 <?php
-namespace cms\core;
+namespace hocine\protun\core\post;
+use hocine\protun\core\db;
+
 include "Init.php";
+
+
 
 class Post {
 
