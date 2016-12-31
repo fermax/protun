@@ -1,12 +1,10 @@
 <?php
 namespace hocine\protun\core\database;
 
-
 use PDO;
 use PDOException;
 
-
-
+require_once "init.php";
 class db {
 
     private $host;
@@ -58,12 +56,17 @@ class db {
     }
 
 
+    /**
+     * @param $query
+     * @return $this
+     */
     function query($query)
     {
         $this->query = $query;
         return $this;
     }
-    
+
+
     /**
      * @return null|string
      */
@@ -74,7 +77,7 @@ class db {
             {
                 $statement = $this->pdo->prepare( $this->query );
                 $statement->execute($this->conditions);
-				conditions = [];
+                $this->conditions = [];
                 return $this->pdo->lastInsertId();
             }
             else
@@ -91,7 +94,6 @@ class db {
     }
 
 
-
     /**
      * @return array|null
      */
@@ -102,10 +104,10 @@ class db {
                 // Prevent SQL Injection
                 $statement = $this->pdo->prepare( $this->query );
                 // is 'Where' method called ?
-                if( count($this->conditions) >0 ){
+                if( count($this->conditions) > 0 ){
                     // 01- yes...
                     $statement->execute($this->conditions);
-					conditions = [];
+                    $this->conditions = [];
                 }
                 else
                 {
@@ -133,10 +135,10 @@ class db {
             {
                 $statement = $this->pdo->prepare( $this->query );
                 // 01- is 'Where' method called ?
-                if( count($this->conditions) >0 ){
+                if( count($this->conditions) > 0 ){
                     // Prevent SQL Injection
                     $statement->execute($this->conditions);
-					conditions = [];
+                    $this->conditions = [];
                 }
                 else
                 {
@@ -160,20 +162,18 @@ class db {
      */
     public function rowCount()
     {
-		$statement = $this->pdo->prepare( $this->query );
-		// 01- is 'Where' method called ?
-		if( count($this->conditions) > 0 ){
-			// Prevent SQL Injection
-			$statement->execute($this->conditions);
-			conditions = [];
-		}
-		else
-		{
-			//02-  No...
-			$statement->execute();
-		}
+        $statement = $this->pdo->prepare( $this->query );
+        if ( count( $this->conditions ) > 0 )
+        {
+            $statement->execute($this->conditions);
+            $this->conditions = [];
 
-		return $statement->rowCount();
+        }
+        else
+        {
+            $statement->execute();
+        }
+        return $statement->rowCount();
     }
 
 
@@ -186,7 +186,7 @@ class db {
 
     public function select ($selected = "*")
     {
-        $this->query = "SELECT ".$selected;
+        $this->query  = "SELECT ".$selected;
         return $this;
     }
 
@@ -210,9 +210,11 @@ class db {
      */
     public function where($param1, $condition, $param2)
     {
+
             $this->conditions[] = $param2;
             $this->query .= " WHERE ".$param1." ".$condition." ?";
             return $this;
+
     }
 
 
@@ -301,7 +303,7 @@ class db {
     /**
      * @param $table
      * @param array $array
-     * @return string
+     * @return $this
      */
     public function insert($table, Array $array)
     {
@@ -310,70 +312,49 @@ class db {
         $this->query .= " ( ";
 
         foreach ($array as $k => $v) {
-            $this->query .= $k . ", ";
+            $this->query .= " $k , ";
         }
 
         $this->query = trim($this->query, ", ");
         $this->query .= " ) VALUES ( ";
 
         foreach ($array as $k => $v) {
-            $this->query .= $v . ", ";
+            $this->query .= " ?, ";
+            $this->conditions[] = $v;
         }
 
         $this->query  = trim($this->query, ", ");
         $this->query .= ")";
-
-
-        //$this->pdo->query($this->query);
-        //return $this->pdo->lastInsertId();
-
-    }
-
-
-
-
-    /**
-     * @param $table
-     * @return $this
-     */
-    public function update($table )
-    {
-        $this->query = "UPDATE ".$table;
         return $this;
     }
 
 
-
-
     /**
+     * @param $tableName
      * @param array $setValues
      * @return $this
      */
-    public function set(Array $setValues)
+    public function update($tableName, Array $setValues )
     {
+        $this->query = "UPDATE ".$tableName;
         $i = 0;
         foreach ($setValues as $key => $value)
         {
-
             if( $i == 0 )
             {
-                $this->query .= " SET ".$key." = ".$value;
+                $this->query .= " SET ".$key." = '".$value."'";
                 $i++;
             }
             else
             {
-                $this->query .= ", ".$key." = ".$value;
+                $this->query .= ", ".$key." = '".$value."'";
             }
         }
-
         unset($key);
         unset($value);
 
         return $this;
-
     }
-
-
 
 
 
@@ -381,7 +362,6 @@ class db {
      * @param $table_name
      * @return Db
      */
-
 
     public function delete($table_name)
     {
@@ -400,9 +380,6 @@ class db {
     {
         $this->error[] = $error;
     }
-
-
-
 
 
     /**
