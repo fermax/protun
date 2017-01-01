@@ -37,13 +37,14 @@ $user->setUniqueColumn("username");
 $user->setOrderByColumn('id');
 
 
-// user login: return --> true/false
+// 01- user login: return --> true/false
 $is_logged_in = $user->login("some_username", "123456789");
 
 
 
-// delete a user by id:
-//$user->remove(1);
+// 02- delete a user by id:
+$user->remove(1);
+
 /*
  * you can delete a user by email; flow this two steps :
  *                                 -1 $user->setIdColumn("email")
@@ -53,8 +54,9 @@ $is_logged_in = $user->login("some_username", "123456789");
 
 
 /*
- * create a user:
+ * 03- create a user:
  *
+ */
 $user->create([
                 'username'    => 'Alhocine',
                 'password'    => '951357',
@@ -64,13 +66,12 @@ $user->create([
                 'answer'      => '4'
 ]);
 
-*/
 
-// edit a user:
+// 04- edit a user:
 $query = $user->edit(7, ["email" => "fermax@example.com"]);
 
 
-//debugging and errors:
+// 05- debugging and errors:
 if( count( $db->getErrors())  )
 {
     echo "<pre style='background-color: red; color: white; font-size: 20px;'>";
