@@ -71,7 +71,7 @@ $user->create([
 $query = $user->edit(7, ["email" => "fermax@example.com"]);
 
 
-// 05- debugging and errors:
+// 05- debugging and errors display:
 if( count( $db->getErrors())  )
 {
     echo "<pre style='background-color: red; color: white; font-size: 20px;'>";
