@@ -70,7 +70,7 @@ $user->create([
 
 
 // edit a user:
-$query = $user->edit(7, ["email" => "fermax_hbb@yahoo.com"]);
+$query = $user->edit(7, ["email" => "user@example.com"]);
 
 
 // error reporting:
