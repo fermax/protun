@@ -41,12 +41,12 @@ $user->setOrderByColumn('id');
 
 
 // user login: return --> true/false
-//$is_logged_in = $user->login("fermax", "1521980Fr");
+$is_logged_in = $user->login("fermax", "user_password");
 
 
 
 // delete a user by id:
-//$user->remove(1);
+$user->remove(1);
 /*
  * you can delete a user by email; flow this two steps :
  *                                 -1 $user->setIdColumn("email")
@@ -58,21 +58,22 @@ $user->setOrderByColumn('id');
 /*
  * create a user:
  *
+ */
 $user->create([
                             'username'    => 'Alhocine',
-                            'password'    => '1521980Fr',
-                            'email'       => 'adabihbb@gmail.com',
+                            'password'    => '123456',
+                            'email'       => 'user@gmail.com',
                             'fullName'    => 'Hocine Ferradj',
                             'secret'      => 'What is my favorite number?',
-                            'answer'      => '4',
-                            'secret_hash' => Hash::Make("654321")
-                           ]);
+                            'answer'      => '4'
+]);
 
-*/
 
 // edit a user:
 $query = $user->edit(7, ["email" => "fermax_hbb@yahoo.com"]);
 
+
+// error reporting:
 if( count( $db->getErrors())  )
 {
     echo "<pre style='background-color: red; color: white; font-size: 20px;'>";
