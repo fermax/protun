@@ -41,7 +41,7 @@ class User
         }
         else
         {
-            $this->db->setError( "اسم المستخدم أو كلمة المرور غير صحيحة" );
+            $this->db->setError( Message::$loginError );
             return false;
         }
     }
@@ -57,6 +57,7 @@ class User
 
         if( is_null( $result ) )
         {
+            $this->db->setError( Message::$noUser );
             return $this->db->getErrors();
         }
         return $result;
@@ -75,7 +76,7 @@ class User
             return $result;
         }
 
-        $this->db->setError("لا يوجد مستخدم");
+        $this->db->setError( Message::$noUser );
         return $this->db->getErrors();
 
     }
