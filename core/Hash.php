@@ -16,7 +16,7 @@ class Hash
 
     public static function Make( $pass, $type = 'sha512' )
     {
-        if( trim( $pass ) < self::LENGTH  )
+        if( trim( $pass ) < self::LENGTH || !in_array( $type, hash_algos() )  )
         {
             return null;
         }
