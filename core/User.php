@@ -35,7 +35,7 @@ class User
                           ->where( "username", "=" , $username )
                           ->and_where( "password","=", Hash::Make( $password ) );
 
-        if( $query->rowCount() > 0 )
+        if( $query->rowCount( true ) > 0 ) // true: empty conditions array
         {
             return true;
         }
@@ -48,16 +48,12 @@ class User
 
     /************************************ admin section ***************************/
 
-
-
-
-
     public function getAllUsers()
     {
         $result =  $this->db->select()
                             ->from( $this->userTable )
                             ->order_by( $this->orderByColumn, "DESC" )
-                            ->all();
+                            ->all( true );
 
         if( is_null( $result ) )
         {
@@ -73,7 +69,7 @@ class User
      */
     public function find($id)
     {
-        $result = $this->db->select()->from( $this->userTable )->where( $this->idColumn, "=", $id )->first();
+        $result = $this->db->select()->from( $this->userTable )->where( $this->idColumn, "=", $id )->first( true );
         if( $result )
         {
             return $result;
@@ -114,9 +110,10 @@ class User
 
         if( $user_exist === 0 )
         {
-            $result = $this->db->insert('users', $userData)->execute();
+            $result = $this->db->insert('users', $userData)->execute( true );
             if( is_null( $result ) )
             {
+                $this->db->setError( Message::$createFailure );
                 return $this->db->getErrors();
             }
             return $result;
@@ -146,9 +143,10 @@ class User
                 $userData[$k] = Hash::Make($v);
             }
         }
-        $result = $this->db->update( $this->userTable, $userData)->where( $this->idColumn, "=", $id)->execute();
+        $result = $this->db->update( $this->userTable, $userData)->where( $this->idColumn, "=", $id)->execute( true );
         if( is_null( $result ) )
         {
+            $this->db->setError( Message::$editFailure );
             return $this->db->getErrors();
         }
         return $result;
@@ -166,6 +164,7 @@ class User
         $result = $this->db->delete( $this->userTable )->where( $this->idColumn, '=', $id)->execute();
         if( is_null( $result ) )
         {
+            $this->db->setError( Message::$deleteFailure );
             return $this->db->getErrors();
         }
         return $result;
