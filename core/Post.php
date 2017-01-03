@@ -35,42 +35,76 @@ class Post
 
 		if ( is_null( $result ) )
         {
+	   $this->db->setError( Message::$postNotFound );
             return $this->db->getErrors();
         }
         return $result;
     }
 
-
-
-    public function getSinglePost()
+	
+    /**
+     * @param $id
+     * @return array|mixed|null
+     */
+    public function singlePost($id )
     {
+        $result = $this->db->select()->from( $this->tableName )->where( $this->idColumn,"=", $id )->first(true);
+        if  ( is_null( $result ) )
+        {
+            return $this->db->getErrors();
+        }
 
-    }
-
-
-
-    public function createSinglePost(  )
-    {
-
-    }
-
-
-
-    public function editSinglePost(  )
-    {
+        return $result;
 
     }
 
 
     /**
      * @param $id
+     * @param array $data
      * @return array|bool
      */
-    public function deleteSinglePost($id )
+    public function editPost($id, Array $data )
     {
-        $this->db->delete( $this->tableName )->where( $this->idColumn,'=', $id )->execute();
+
+        $this->db->update( $this->tableName, $data )->where( $this->idColumn, "=", $id )->execute(true);
         if ( count( $this->db->getErrors() ) > 0 )
         {
+            $this->db->setError( Message::$editFailure );
+            return $this->db->getErrors();
+        }
+        return true;
+    }
+
+
+    /**
+     * @param array $postData
+     * @return array|bool
+     */
+    public function createPost(Array $postData )
+    {
+        $this->db->insert( $this->tableName, $postData )->execute(true);
+        if ( count( $this->db->getErrors() ) > 0 )
+        {
+            $this->db->setError( Message::$createFailure );
+            return $this->db->getErrors();
+        }
+        return true;
+    }
+
+
+
+
+    /**
+     * @param $id
+     * @return array|bool
+     */
+    public function deletePost($id )
+    {
+        $this->db->delete( $this->tableName )->where( $this->idColumn,'=', $id )->execute(true);
+        if ( count( $this->db->getErrors() ) > 0 )
+        {
+            $this->db->setError( Message::$deleteFailure );
             return $this->db->getErrors();
         }
         return true;
@@ -85,19 +119,25 @@ class Post
 
 
 
-    public function uniqueColumn( $uniqueColumn )
+    public function setUniqueColumn( $uniqueColumn )
     {
         $this->uniqueColumn = $uniqueColumn;
     }
 
 
 
-    public function orderByColumn( $orderBy_Column )
+    public function setOrderByColumn( $orderBy_Column )
     {
         $this->orderByColumn = $orderBy_Column;
     }
 
-
+    /**
+     * @param string $idColumn
+     */
+    public function setIdColumn(string $idColumn)
+    {
+        $this->idColumn = $idColumn;
+    }
 
 
 }
