@@ -71,14 +71,16 @@ class db {
     /**
      * @return null|string
      */
-    public function execute()
+    public function execute($emptyArray = false)
     {
         try{
             if( count($this->conditions) > 0 )
             {
                 $statement = $this->pdo->prepare( $this->query );
                 $statement->execute($this->conditions);
-                $this->conditions = [];
+                if ($emptyArray === true) {
+                    $this->conditions = [];
+                }
                 return $this->pdo->lastInsertId();
             }
             else
@@ -99,7 +101,7 @@ class db {
     /**
      * @return array|null
      */
-    public function all()
+    public function all($emptyArray = false)
     {
             try
             {
@@ -109,7 +111,9 @@ class db {
                 if( count($this->conditions) > 0 ){
                     // 01- yes...
                     $statement->execute($this->conditions);
-                    $this->conditions = [];
+                     if ($emptyArray === true) {
+                    	$this->conditions = [];
+                      }
                 }
                 else
                 {
@@ -128,55 +132,55 @@ class db {
 
 
     /**
+     * @param bool $emptyArray
      * @return mixed|null
      */
-    public function first()
+    public function first($emptyArray = false)
     {
 
-            try
-            {
-                $statement = $this->pdo->prepare( $this->query );
-                // 01- is 'Where' method called ?
-                if( count($this->conditions) > 0 ){
-                    // Prevent SQL Injection
-                    $statement->execute($this->conditions);
+        try {
+            $statement = $this->pdo->prepare($this->query);
+            // 01- is 'Where' method called ?
+            if (count($this->conditions) > 0) {
+                // Prevent SQL Injection
+                $statement->execute($this->conditions);
+                if ($emptyArray === true) {
+                    // اذا كنت لا تحتاج الى الكويري طبق هذا الامر ، و قد تحتاجه مع دالة rowCount !
                     $this->conditions = [];
                 }
-                else
-                {
-                    //02-  No...
-                    $statement->execute();
-                }
-
-                return $statement->fetch(PDO::FETCH_OBJ);
-
+            } else {
+                //02-  No...
+                $statement->execute();
             }
-            catch (PDOException $e)
-            {
-                $this->setError($e->getMessage());
-                return null;
-            }
+
+            return $statement->fetch(PDO::FETCH_OBJ);
+
+        } catch (PDOException $e) {
+            $this->setError($e->getMessage());
+            return null;
+        }
 
     }
 
     /**
      * @return int
+     * @param bool $emptyArray
      */
-    public function rowCount()
+    public function rowCount($emptyArray = false)
     {
-        $statement = $this->pdo->prepare( $this->query );
-        if ( count( $this->conditions ) > 0 )
-        {
+        $statement = $this->pdo->prepare($this->query);
+        if (count($this->conditions) > 0) {
             $statement->execute($this->conditions);
-            $this->conditions = [];
+            if ($emptyArray === true) {
+                $this->conditions = [];
+            }
 
-        }
-        else
-        {
+        } else {
             $statement->execute();
         }
         return $statement->rowCount();
     }
+
 
 
     public function get($tableName, $orderBy, $limit, $start)
