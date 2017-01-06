@@ -14,6 +14,7 @@ class db {
     private static $charset;
     private $pdo;
     private $query = "";
+    private $where = 0;
     private $error = [];
     private $conditions = [];
 
@@ -218,16 +219,27 @@ class db {
      * @param $param1
      * @param $condition
      * @param $param2
+     * @param $where
      * @return $this|null
      */
-    public function where($param1, $condition, $param2)
+    public function where($param1, $condition, $param2, $where = " AND ")
     {
 
-            $this->conditions[] = $param2;
-            $this->query .= " WHERE ".$param1." ".$condition." ?";
-            return $this;
+        $this->conditions[] = $param2;
+        if( $this->where === 0 )
+        {
+            $this->query .= " WHERE " . $param1 . " " . $condition . " ?";
+            $this->where++;
+        }
+        else
+        {
+            $this->query .= $where. $param1 . " " . $condition . " ?";
+        }
+
+        return $this;
 
     }
+    
 
 
     /**
